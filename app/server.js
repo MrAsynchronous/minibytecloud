@@ -8,6 +8,10 @@ app.listen(PORT, HOST, function () {
   console.log(`Running on http://${HOST}:${PORT}`);
 });
 
+app.get("/login", (req, res) => {
+	res.send("This is a testing!  Hello hello hello!");
+});
+
 app.get("/", (req, res) => {
   res.send("Users Shown");
 });
