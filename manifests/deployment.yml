@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: "minibytecloud-4cb6"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: "minibytecloud-4cb6"
+  template:
+    metadata:
+      labels:
+        app: "minibytecloud-4cb6"
+    spec:
+      containers:
+        - name: "minibytecloud-4cb6"
+          image: "minibytenodejs.azurecr.io/minibytecloud"
+          ports:
+          - containerPort: 8080
