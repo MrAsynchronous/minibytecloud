@@ -1,0 +1,19 @@
+apiVersion : apps/v1
+kind: Deployment
+metadata:
+  name: "minibytescloudcluster-7fec"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: "minibytescloudcluster-7fec"
+  template:
+    metadata:
+      labels:
+        app: "minibytescloudcluster-7fec"
+    spec:
+      containers:
+        - name: "minibytescloudcluster-7fec"
+          image: "minibytescontainerregistry.azurecr.io/minibytescloudcluster"
+          ports:
+          - containerPort: 8080
