@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: minibytecloud
+spec:
+  selector:
+    matchLabels:
+      app: minibytecloud
+  template:
+    metadata:
+      labels:
+        app: minibytecloud
+    spec:
+      containers:
+      - name: minibytecloud
+        image: mrasync/minibytecloud:v1.1
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 3000
