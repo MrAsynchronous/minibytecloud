@@ -97,7 +97,8 @@ spec:
         app: minibytescloud
     spec:
       containers:
-        - image: gcr.io/auspicious-crow-331802/github_mrasynchronous_minibytecloud
+        - image: >-
+            gcr.io/auspicious-crow-331802/github.com/mrasynchronous/minibytecloud
           imagePullPolicy: IfNotPresent
           name: minibytecloud-1
 ---
