@@ -2,7 +2,6 @@ const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const profanity = require('profanity-util');
 const mongoSchemas = require('../MongoSchemas');
-const { query } = require('express');
 
 const router = express.Router();
 
@@ -14,12 +13,27 @@ function isValidUserRequest(user) {
 		user.password && user.password.toString().trim() !== '');
 }
 
-router.get('/', (request, response) => {
-	response.json({
-		message: "You've reached /users.",
-		api: ["/login", "/signup"]
+// Landing
+router.get('/', (req, res) => {
+	res.json({
+		message: `You've reached ${req.originalUrl}`,
+		available_api: ["GET /login", "POST /signup"]
 	});
 });
+
+// POST wildcard
+router.post('*', (req,res) => {
+	res.json({
+		message: `POST ${req.originalUrl} is not a valid REST Endpoint!`
+	})
+});
+
+// GET wildcard
+router.get('*', (req, res) => {
+	res.json({
+		message: `GET ${req.originalUrl} is not a valid REST Endpoint!`
+	});
+})
 
 /*
 	Logs a user in.
