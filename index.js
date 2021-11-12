@@ -13,6 +13,7 @@ const app = express();
 
 // Port definition
 var port = process.env.PORT || 3000;
+var version = "1.0.0";
 
 // Create connection to MongoDb
 createMongoConnection().catch((err) => console.log(err));
@@ -41,5 +42,5 @@ app.get('/', (req, res) => {
 
 // Launch cloud on port
 app.listen(port, function () {
-	console.log(`MiniBytes cloud running on port: ${port}!`)
+	console.log(`MiniBytes V${version} cloud running on port: ${port}!`)
 });
