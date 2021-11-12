@@ -1,24 +1,27 @@
 //Load express module with `require` directive
-var express = require('express');
-var app = express();
+const express = require('express');
+const cors = require('cors');
 
-//Define port
-var port = 3000;
+// Load local ENV
+if (process.env.NODE_ENV !== 'production') {
+	require('dotenv').config();
+}
 
-//Define request response in root URL (/)
-app.get('/', function (req, res) {
-	res.send("Reached MiniBytesCloud!");
-});
+// Create express app instance
+const app = express();
 
-app.get('/signin', (req, res) => {
-	res.send("Reached /signin!");
-});
+// Port definition
+var port = process.env.PORT || 3000;
 
-app.get('/signup', (req, res) => {
-	res.send("Reached /signup!");
-});
+// Dependency usage
+app.use(cors());
+app.use(express.json());
 
-//Launch listening server on port 3000
+// Routing
+app.use('/users', require('./routes/Users'));
+app.use('/bytes', require('./routes/Bytes'));
+
+// Launch cloud on port
 app.listen(port, function () {
-	console.log(`app listening on port ${port}!`)
-})
+	console.log(`MiniBytes cloud running on port: ${port}!`)
+});
