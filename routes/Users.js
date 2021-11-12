@@ -1,10 +1,10 @@
 const express = require('express');
-const Filter = require('bad-words');
 const { v4: uuidv4 } = require('uuid');
+const profanity = require('profanity-util');
 const mongoSchemas = require('../MongoSchemas');
+const { query } = require('express');
 
 const router = express.Router();
-const filter = new Filter();
 
 const User = mongoSchemas.User;
 
@@ -21,113 +21,108 @@ router.get('/', (request, response) => {
 	});
 });
 
-// Logs a user in
-router.get('/login', (request, response) => {
-	// Validate request
-	if (isValidUserRequest(request.body)) {
-		// Find user in DB
-		User
-			.find({
-				name: request.body.name
-			})
-			.then(doc => {
-				
-				// Check if user exists
-				if (doc.length >= 1) {
-					var user = doc[0];
+/*
+	Logs a user in.
 
-					// Compare passwords
-					if (user.password == request.body.password) {
-
-						// Respond with user_id
-						response.json({
-							user_id: user._id
-						})
-					} else {
-						response.status(422);
-						response.json({
-							message: "Incorrect password!"
-						});
-					}
-				} else {
-					response.status(422);
-					response.json({
-						message: "User not found!"
-					});
-				}
-			})
-			.catch(err => {
-				
-				response.status(422);
-				response.json({
-					message: "Couldn't check user existance!",
-					error: err
-				});
-			});
-	} else {
-		response.status(422);
-		response.json({
-			message: 'Hey! Username and password are required!'
-		});
+	req = {
+		name: String,
+		password: String (hash only)
 	}
-});
 
-// Signs up a new user
-router.post('/signup', (request, response) => {
-	// Validate request
-	if (isValidUserRequest(request.body)) {
-
-		// Check if user already exists
-		User
-			.find({
-				name: request.body.name
-			})
-			.then(doc => {
-				
-				// Check if user exists in doc
-				if (doc.length > 0) {
-					response.status(422);
-					response.json({
-						message: "User already exists!"
-					});
-				} else {
-					// Generate new user object
-					var user = new User({
-						name: filter.clean(request.body.name),
-						password: request.body.password,
-						user_id: uuidv4()
-					})
-					
-					// Save user and return user_id
-					user.save()
-						.then(doc => {
-							response.json({
-								username: doc.name,
-								user_id: doc.user_id
-							});
-						})
-						.catch(err => {
-							response.status(500);
-							response.json({
-								message: "Couldn't save user!",
-								error: err
-							})
-						});
-				}
-			})
-			.catch(err => {
-				response.status(500);
-				response.json({
-					message: "Couldn't check user existance!",
-					error: err
-				});
-			});
-	} else {
-		response.status(422);
-		response.json({
-			message: 'Hey! Username and password are required!'
-		});
+	res = {
+		user_id: String
 	}
-});
+*/
+router.get('/login', async (req, res) => {
+	var body = req.body;
+
+	// Validate request body
+	if (!isValidUserRequest(body)) {
+		return res.json({ message: "Must provide name and password!" });
+	}
+
+	// Query user name in DB
+	var queryResult = await User
+		.find({
+			name: body.name
+		})
+
+	// Validate user existance
+	if (queryResult.length == 0) {
+		return res.json({ message: "User not found!" });
+	}
+	
+	// Localize user information
+	var userData = queryResult[0];
+
+	// Compare passwords
+	if (userData.password != body.password) {
+		return res.json({ message: "Wrong password!" });
+	}
+
+	// Return userid
+	res.json({ user_id: userData.user_id })
+})
+
+/*
+	Signs a new user up. 
+
+	req = {
+		name: String,
+		password: String (hash only)
+	}
+
+	res = {
+		user_id: String
+	}
+*/
+router.post('/signup', async (req, res) => {
+	var body = req.body;
+
+	// Validate request body
+	if (!isValidUserRequest(body)) {
+		return res.json({ message: "Must provide name and password!" });
+	}
+
+	// Query user name in DB
+	var queryResult = await User
+		.find({
+			name: body.name
+		})
+
+	// Check for bad username
+	if (profanity.check(body.name).length > 0) {
+		return res.json({ message: "Inappropriate username!" });
+	}
+
+	// Only one username can exist
+	if (queryResult.length > 0) {
+		var user = queryResult[0];
+
+		// Give notice to user that they already have an account
+		if (user.password == body.password) {
+			return res.json({ message: "Looks like you already have an account!  Please login!" });
+ 		} else {
+			return res.json({ message: "Username taken!" });
+		}
+	}
+
+	// Construct new user model
+	var user = new User({
+		name: body.name,
+		password: body.password,
+		user_id: uuidv4()
+	})
+
+	// Save user to db
+	await user
+		.save()
+		.then(doc => {
+			return res.json({ user_id: doc.user_id });
+		})
+		.catch(err => {
+			return res.json({ message: "Couldn't save user!", error: err });
+		})
+})
 
 module.exports = router
