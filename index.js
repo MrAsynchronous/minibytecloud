@@ -32,6 +32,12 @@ app.use(express.json());
 app.use('/users', require('./routes/Users'));
 app.use('/bytes', require('./routes/Bytes'));
 
+app.get('/', (req, res) => {
+	res.json({
+		message: "You've reached the API of minibytes!"
+	})
+})
+
 // Launch cloud on port
 app.listen(port, function () {
 	console.log(`MiniBytes cloud running on port: ${port}!`)
