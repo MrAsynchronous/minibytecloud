@@ -2,7 +2,6 @@ const express = require('express');
 const Filter = require('bad-words');
 const mongoose = require('mongoose');
 const mongoSchemas = require('../MongoSchemas');
-const { v4: uuidv4 } = require('uuid');
 
 const router = express.Router();
 const filter = new Filter();
