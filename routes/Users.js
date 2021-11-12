@@ -8,17 +8,6 @@ const filter = new Filter();
 
 const User = mongoSchemas.User;
 
-// Create connection to MongoDb
-createMongoConnection().catch((err) => console.log(err));
-
-// Helper function to create connection to mongoDB
-async function createMongoConnection() {
-	var username = process.env.MONGOUSERNAME;
-	var password = process.env.MONGOPASSWORD;
-
-	await mongoose.connect(`mongodb+srv://${username}:${password}@minibytesdb.km9ra.mongodb.net/minibytesdb?retryWrites=true&w=majority`);
-}
-
 // Returns true if signup is valid
 function isValidUserRequest(user) {
 	return  (user.name && user.name.toString().trim() !== '' &&

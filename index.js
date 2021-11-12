@@ -13,6 +13,17 @@ const app = express();
 // Port definition
 var port = process.env.PORT || 3000;
 
+// Create connection to MongoDb
+createMongoConnection().catch((err) => console.log(err));
+
+// Helper function to create connection to mongoDB
+async function createMongoConnection() {
+	var username = process.env.MONGOUSERNAME;
+	var password = process.env.MONGOPASSWORD;
+
+	await mongoose.connect(`mongodb+srv://${username}:${password}@minibytesdb.km9ra.mongodb.net/minibytesdb?retryWrites=true&w=majority`);
+}
+
 // Dependency usage
 app.use(cors());
 app.use(express.json());
