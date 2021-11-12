@@ -1,6 +1,5 @@
 const express = require('express');
 const Filter = require('bad-words');
-const mongoose = require('mongoose');
 const mongoSchemas = require('../MongoSchemas');
 
 const router = express.Router();
