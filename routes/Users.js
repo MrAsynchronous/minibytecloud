@@ -1,5 +1,6 @@
 const express = require('express');
 const Filter = require('bad-words');
+const { v4: uuidv4 } = require('uuid');
 const mongoSchemas = require('../MongoSchemas');
 
 const router = express.Router();
@@ -9,7 +10,7 @@ const User = mongoSchemas.User;
 
 // Returns true if signup is valid
 function isValidUserRequest(user) {
-	return  (user.name && user.name.toString().trim() !== '' &&
+	return (user.name && user.name.toString().trim() !== '' &&
 		user.password && user.password.toString().trim() !== '');
 }
 
@@ -93,7 +94,8 @@ router.post('/signup', (request, response) => {
 					// Generate new user object
 					var user = new User({
 						name: filter.clean(request.body.name),
-						password: request.body.password
+						password: request.body.password,
+						user_id: uuidv4()
 					})
 					
 					// Save user and return user_id
@@ -101,7 +103,7 @@ router.post('/signup', (request, response) => {
 						.then(doc => {
 							response.json({
 								username: doc.name,
-								user_id: doc._id
+								user_id: doc.user_id
 							});
 						})
 						.catch(err => {
