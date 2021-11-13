@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: minibytes
+    app: minibytescloud
   managedFields:
     - apiVersion: apps/v1
       fieldsType: FieldsV1
@@ -29,7 +29,7 @@ metadata:
                 'f:app': {}
             'f:spec':
               'f:containers':
-                'k:{"name":"github-mrasynchronous-minibytecloud-1"}':
+                'k:{"name":"minibytecloud-1"}':
                   .: {}
                   'f:env':
                     .: {}
@@ -82,7 +82,7 @@ metadata:
               'f:terminationGracePeriodSeconds': {}
       manager: GoogleCloudConsole
       operation: Update
-      time: '2021-11-12T06:23:03Z'
+      time: '2021-11-13T23:51:06Z'
     - apiVersion: apps/v1
       fieldsType: FieldsV1
       fieldsV1:
@@ -116,14 +116,14 @@ metadata:
           'f:updatedReplicas': {}
       manager: kube-controller-manager
       operation: Update
-      time: '2021-11-12T06:23:31Z'
-  name: minibytes
+      time: '2021-11-13T23:51:37Z'
+  name: minibytescloud
   namespace: default
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
-      app: minibytes
+      app: minibytescloud
   strategy:
     rollingUpdate:
       maxSurge: 25%
@@ -132,7 +132,7 @@ spec:
   template:
     metadata:
       labels:
-        app: minibytes
+        app: minibytescloud
     spec:
       containers:
         - env:
@@ -140,31 +140,32 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   key: MONGOUSERNAME
-                  name: minibytes-config-cmbu
+                  name: minibytescloud-config-uk5m
             - name: MONGOPASSWORD
               valueFrom:
                 configMapKeyRef:
                   key: MONGOPASSWORD
-                  name: minibytes-config-cmbu
+                  name: minibytescloud-config-uk5m
             - name: NODE_ENV
               valueFrom:
                 configMapKeyRef:
                   key: NODE_ENV
-                  name: minibytes-config-cmbu
+                  name: minibytescloud-config-uk5m
             - name: PORT
               valueFrom:
                 configMapKeyRef:
                   key: PORT
-                  name: minibytes-config-cmbu
-          image: gcr.io/auspicious-crow-331802/github_mrasynchronous_minibytecloud
+                  name: minibytescloud-config-uk5m
+          image: >-
+            gcr.io/auspicious-crow-331802/github.com/mrasynchronous/minibytecloud
           imagePullPolicy: IfNotPresent
-          name: github-mrasynchronous-minibytecloud-1
+          name: minibytecloud-1
 ---
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:
   labels:
-    app: minibytes
+    app: minibytescloud
   managedFields:
     - apiVersion: autoscaling/v2beta1
       fieldsType: FieldsV1
@@ -183,7 +184,7 @@ metadata:
             'f:name': {}
       manager: GoogleCloudConsole
       operation: Update
-      time: '2021-11-12T06:23:03Z'
+      time: '2021-11-13T23:51:06Z'
     - apiVersion: autoscaling/v1
       fieldsType: FieldsV1
       fieldsV1:
@@ -195,8 +196,8 @@ metadata:
           'f:currentReplicas': {}
       manager: vpa-recommender
       operation: Update
-      time: '2021-11-12T06:23:20Z'
-  name: minibytes-hpa-r6p0
+      time: '2021-11-13T23:51:22Z'
+  name: minibytescloud-hpa-xise
   namespace: default
 spec:
   maxReplicas: 5
@@ -209,7 +210,7 @@ spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: minibytes
+    name: minibytescloud
 ---
 apiVersion: v1
 kind: Service
@@ -219,7 +220,7 @@ metadata:
   finalizers:
     - service.kubernetes.io/load-balancer-cleanup
   labels:
-    app: minibytes
+    app: minibytescloud
   managedFields:
     - apiVersion: v1
       fieldsType: FieldsV1
@@ -244,7 +245,7 @@ metadata:
           'f:type': {}
       manager: GoogleCloudConsole
       operation: Update
-      time: '2021-11-12T06:24:03Z'
+      time: '2021-11-13T23:51:58Z'
     - apiVersion: v1
       fieldsType: FieldsV1
       fieldsV1:
@@ -257,20 +258,20 @@ metadata:
             'f:ingress': {}
       manager: kube-controller-manager
       operation: Update
-      time: '2021-11-12T06:24:51Z'
-  name: minibytes-service
+      time: '2021-11-13T23:52:38Z'
+  name: minibytescloud-service
   namespace: default
 spec:
-  clusterIP: 10.80.1.198
+  clusterIP: 10.112.9.78
   clusterIPs:
-    - 10.80.1.198
+    - 10.112.9.78
   externalTrafficPolicy: Cluster
   ports:
-    - nodePort: 32140
+    - nodePort: 30852
       port: 3000
       protocol: TCP
       targetPort: 3000
   selector:
-    app: minibytes
+    app: minibytescloud
   sessionAffinity: None
   type: LoadBalancer
