@@ -36,7 +36,7 @@ app.use('/bytes', require('./routes/Bytes'));
 
 app.get('/', (req, res) => {
 	res.json({
-		message: "You've reached the API of minibytes!"
+		message: `You've reached the v${version} API of minibytes!`
 	})
 })
 
