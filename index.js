@@ -40,6 +40,20 @@ app.get('/', (req, res) => {
 	})
 })
 
+// POST wildcard
+app.post('*', (req,res) => {
+	res.json({
+		message: `POST ${req.originalUrl} is not a valid REST Endpoint!`
+	})
+});
+
+// GET wildcard
+app.get('*', (req, res) => {
+	res.json({
+		message: `GET ${req.originalUrl} is not a valid REST Endpoint!`
+	});
+})
+
 // Launch cloud on port
 app.listen(port, function () {
 	console.log(`MiniBytes V${version} cloud running on port: ${port}!`)

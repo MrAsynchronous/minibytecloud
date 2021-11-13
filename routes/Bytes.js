@@ -1,5 +1,6 @@
 const express = require('express');
 const Filter = require('bad-words');
+const mongoose = require('mongoose');
 const mongoSchemas = require('../MongoSchemas');
 
 const router = express.Router();
@@ -7,114 +8,217 @@ const filter = new Filter();
 
 const User = mongoSchemas.User;
 const Byte = mongoSchemas.Byte;
+const Comment = mongoSchemas.Comment;
 
 function isValidByteRequest(byte) {
 	return (byte.user_id && byte.user_id.toString().trim() !== '' &&
-	byte.body && byte.body.toString().trim() !== '');
+		byte.body && byte.body.toString().trim() !== '');
+}
+
+function isValidUpvoteRequest(req) {
+	return (req.byte_id && req.byte_id.toString().trim() !== '' &&
+		req.user_id && req.user_id.toString().trim() !== '')
+}
+
+function isValidCommentRequest(req) {
+	return (req.byte_id && req.byte_id.toString().trim() !== '' &&
+		req.user_id && req.user_id.toString().trim() !== '' &&
+		req.body && req.body.toString().trim() !== '')
 }
 
 router.get('/', (request, response) => {
 	response.json({
 		message: "You've reached /bytes.",
-		api: ["/post", "/fetch"]
+		api: ["POST /post", "POST /upvote", "POST /comment", "GET /fetch"]
 	});
 });
 
-router.post('/upvote', (request, response) => {
+/*
+	Posts a new byte
 
-});
+	req = {
+		user_id: String
+		body: String
+	}
+*/
+router.post('/post', async (req, res) => {
+	var body = req.body;
 
-router.post('/comment', (request, response) => {
-
-});
-
-router.post('/post', (request, response) => {
-
-	if (isValidByteRequest(request.body)) {
-
-		// Check for user in DB
-		User
-			.find({
-				user_id: request.body.user_id
-			})
-			.then(doc => {
-				console.log(doc);
-
-				// Check if user exists
-				if (doc.length >= 1) {
-					var user = doc[0];
-
-					var byte = new Byte({
-						author_userid: request.body.user_id,
-						body: filter.clean(request.body.body)
-					})
-
-					byte.save()
-						.then(doc => {
-							user.total_bytes += 1;
-
-							user.save()
-								.then(doc => {
-									response.json({
-										byte_id: doc._id
-									});
-								})
-								.catch(err => {
-									response.status(500);
-									response.json({
-										message: "Couldn't update bytes!",
-										error: err 
-									})
-								})
-						})
-						.catch(err => {
-							response.status(500);
-							response.json({
-								message: "Couldn't save byte!",
-								error: err
-							})
-						});
-				} else {
-					response.status(422);
-					response.json({
-						message: "User not found!"
-					})
-				}
-			})
-			.catch(err => {
-				response.status(422)
-				response.json({
-					message: "Couldn't validate user_id!",
-					error: err
-				});
-			});
-	} else {
-		response.status(422);
-		response.json({
-			message: "Hey! User_id and body are required!"
-		})
+	// Validate request body
+	if (!isValidByteRequest(body)) {
+		return res.json({ message: "Must provide body and user_id!" });
 	}
 
+	// Validate length
+	if (body.body.length > 128) {
+		return res.json({ message: `Byte body is too long! ${body.body.length - 128} characters too long!` });
+	}
+
+	// Query user_id in db
+	var queryResult = await User
+		.find({
+			user_id: body.user_id
+		});
+
+	// Validate user existance
+	if (queryResult.length == 0) {
+		return res.json({ message: "User not found!" });
+	}
+
+	// Localize user information
+	var user = queryResult[0];
+
+	// Construct new byte
+	var byte = new Byte({
+		author_userid: user.user_id,
+		body: filter.clean(body.body)
+	});
+
+	// Update user byte count
+	user.total_bytes += 1;
+
+	// Save user changes
+	await user
+		.save()
+		.catch(err => {
+			console.log("Couldn't save total_bytes!", err);
+		})
+
+	// Save byte
+	await byte
+		.save()
+		.then(doc => {
+			return res.json({ byte_id: doc._id });
+		})
+		.catch(err => {
+			return res.json({ message: "Couldn't save byte!", error: err });
+		})
 });
 
-router.get('/fetch', (request, response) => {
+/*
+	Upvotes a byte
 
+	req = {
+		user_id: String
+		byte_id: String
+	}
+
+	res = {
+		byte_id: String
+		upvote_count: 1
+	}
+*/
+router.post('/upvote', async (req, res) => {
+	var body = req.body;
+
+	// Validate request
+	if (!isValidUpvoteRequest(body)) {
+		return res.json({ message: "Must provide byte_id and user_id" });
+	}
+
+	// Query DB for byte
+	var queryResult = await Byte
+		.find({
+			_id: mongoose.Types.ObjectId(body.byte_id)
+		})
+	
+	// Validate byte existance
+	if (queryResult.length == 0) {
+		return res.json({ message: "Invalid byte!" });
+	}
+
+	// Localize byte
+	var byte = queryResult[0];
+
+	// Make sure users can't upvote multiple times
+	if (byte.votes.users.includes(body.user_id)) {
+		return res.json({ message: "Byte already upvoted!", byte_id:byte._id, upvote_count: byte.votes.count });
+	}
+
+	// Update byte information
+	byte.votes.count += 1;
+	byte.votes.users.push(body.user_id)
+
+	// Update byte in DB
+	await byte
+		.save()
+		.then(doc => {
+			return res.json({ byte_id:byte._id, upvote_count: doc.votes.count });
+		})
+		.catch(err => {
+			return res.json({ message: "Couldn't upvote byte!", error: err });
+		});
+});
+
+router.post('/comment', async (req, res) => {
+	var body = req.body;
+
+	// Validate request
+	if (!isValidCommentRequest(body)) {
+		return res.json({ message: "Must provide byte_id and body" });
+	}
+
+	// Validate length
+	if (body.body.length > 128) {
+		return res.json({ message: `Byte body is too long! ${body.body.length - 128} characters too long!` });
+	}
+
+	// Query DB for byte
+	var queryResult = await Byte
+		.find({
+			_id: mongoose.Types.ObjectId(body.byte_id)
+		})
+	
+	// Validate byte existance
+	if (queryResult.length == 0) {
+		return res.json({ message: "Invalid byte!" });
+	}
+
+	// Localize byte
+	var byte = queryResult[0];
+
+	// Construct a new comment
+	var comment = new Comment({
+		author_userid: body.user_id,
+		body: filter.clean(body.body)
+	});
+
+	// Insert comment into byte
+	byte.comments.push(comment)
+
+	// Update byte in DB
+	await byte
+		.save()
+		.then(doc => {
+			return res.json({ byte_id:byte._id, comments: doc.comments });
+		})
+		.catch(err => {
+			return res.json({ message: "Couldn't upvote byte!", error: err });
+		});
+});
+
+/*
+	Fetches the first 100 bytes
+
+	req = {
+
+	}
+
+	res = {
+		bytes: [Byte]
+	}
+*/
+router.get('/fetch', async (req, res) => {
 	// Fetch first 100 bytes, sort by date
-	Byte.find()
+	await Byte.find()
 		.limit(100)
 		.sort({date: -1})
 		.exec()
 		.then(docs => {
-			response.json({
-				bytes: docs
-			})
+			res.json({ bytes: docs })
 		})
 		.catch(err => {
-			response.status(422);
-			response.json({
-				message: "Couldn't query bytes!",
-				error: err
-			})
+			res.json({ message: "Couldn't query bytes!", error: err })
 		})
 });
 

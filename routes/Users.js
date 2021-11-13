@@ -1,16 +1,27 @@
 const express = require('express');
+const Filter = require('bad-words');
 const { v4: uuidv4 } = require('uuid');
 const profanity = require('profanity-util');
 const mongoSchemas = require('../MongoSchemas');
 
 const router = express.Router();
+const filter = new Filter();
 
 const User = mongoSchemas.User;
 
-// Returns true if signup is valid
-function isValidUserRequest(user) {
+function isValidLoginRequest(user) {
 	return (user.name && user.name.toString().trim() !== '' &&
 		user.password && user.password.toString().trim() !== '');
+}
+
+function isValidSignupRequest(user) {
+	return (user.name && user.name.toString().trim() !== '' &&
+		user.password && user.password.toString().trim() !== '' &&
+		user.bio && user.bio.toString().trim() !== '');
+}
+
+function isValidUserInfoRequest(req) {
+	return (req.user_id && req.user_id.toString().trim() !== '')
 }
 
 // Landing
@@ -20,20 +31,6 @@ router.get('/', (req, res) => {
 		available_api: ["GET /login", "POST /signup"]
 	});
 });
-
-// POST wildcard
-router.post('*', (req,res) => {
-	res.json({
-		message: `POST ${req.originalUrl} is not a valid REST Endpoint!`
-	})
-});
-
-// GET wildcard
-router.get('*', (req, res) => {
-	res.json({
-		message: `GET ${req.originalUrl} is not a valid REST Endpoint!`
-	});
-})
 
 /*
 	Logs a user in.
@@ -51,7 +48,7 @@ router.get('/login', async (req, res) => {
 	var body = req.body;
 
 	// Validate request body
-	if (!isValidUserRequest(body)) {
+	if (!isValidLoginRequest(body)) {
 		return res.json({ message: "Must provide name and password!" });
 	}
 
@@ -79,6 +76,39 @@ router.get('/login', async (req, res) => {
 })
 
 /*
+	Returns the user infor for a user_id
+
+	req = {
+		user_id: String
+	}
+
+	res = {
+		user_info: Object
+	}
+*/
+router.get('/getuserinfo', async (req, res) => {
+	var body = req.body;
+
+	// Validate request
+	if (!isValidUserInfoRequest(body)) {
+		return res.json({ message: "Must provide a user_id!" });
+	}
+
+	// Query DB to find user
+	var queryResult = await User
+		.find({
+			user_id: body.user_id
+		});
+
+	// Validate user existance
+	if (queryResult.length == 0) {
+		return res.json({ message: "User not found!" });
+	}
+
+	return res.json({ user_info: queryResult[0] });
+})
+
+/*
 	Signs a new user up. 
 
 	req = {
@@ -94,8 +124,8 @@ router.post('/signup', async (req, res) => {
 	var body = req.body;
 
 	// Validate request body
-	if (!isValidUserRequest(body)) {
-		return res.json({ message: "Must provide name and password!" });
+	if (!isValidSignupRequest(body)) {
+		return res.json({ message: "Must provide name, bio and password!" });
 	}
 
 	// Query user name in DB
@@ -125,6 +155,7 @@ router.post('/signup', async (req, res) => {
 	var user = new User({
 		name: body.name,
 		password: body.password,
+		bio: filter.clean(body.bio),
 		user_id: uuidv4()
 	})
 
