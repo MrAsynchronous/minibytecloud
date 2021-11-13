@@ -12,7 +12,6 @@ const userSchema = new mongoose.Schema({
 	user_id: String,
 
 	bio: String,
-	pfp: imageSchema,
 	total_bytes: { type: Number, default: 0 },
 	total_upvotes: { type: Number, default: 0 },
 });

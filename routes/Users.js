@@ -105,7 +105,18 @@ router.get('/getuserinfo', async (req, res) => {
 		return res.json({ message: "User not found!" });
 	}
 
-	return res.json({ user_info: queryResult[0] });
+	// Localize user data
+	var userData = queryResult[0];
+
+	// Clean user data
+	var cleanedUserData = {
+		name: userData.name,
+		bio: userData.bio,
+		total_bytes: userData.total_bytes,
+		total_upvotes: userData.total_upvotes
+	}
+
+	return res.json({ user_info: cleanedUserData });
 })
 
 /*

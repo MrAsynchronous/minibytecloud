@@ -120,7 +120,7 @@ router.post('/upvote', async (req, res) => {
 	var queryResult = await Byte
 		.find({
 			_id: mongoose.Types.ObjectId(body.byte_id)
-		})
+		});
 	
 	// Validate byte existance
 	if (queryResult.length == 0) {
@@ -135,15 +135,33 @@ router.post('/upvote', async (req, res) => {
 		return res.json({ message: "Byte already upvoted!", byte_id:byte._id, upvote_count: byte.votes.count });
 	}
 
+	// Get information about byte author
+	var userQueryResult = await User
+		.find({
+			user_id: byte.author_userid
+		});
+
+	// Localize author
+	var author = userQueryResult[0];
+
 	// Update byte information
 	byte.votes.count += 1;
 	byte.votes.users.push(body.user_id)
+
+	// Update author information
+	author.total_upvotes += 1;
 
 	// Update byte in DB
 	await byte
 		.save()
 		.then(doc => {
-			return res.json({ byte_id:byte._id, upvote_count: doc.votes.count });
+
+			// Save author information
+			author
+				.save()
+				.then(() => {
+					return res.json({ byte_id:byte._id, upvote_count: doc.votes.count });
+				});
 		})
 		.catch(err => {
 			return res.json({ message: "Couldn't upvote byte!", error: err });
