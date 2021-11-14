@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    run: minibytescloud
+  name: minibytescloud
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      run: minibytescloud
+  template:
+    metadata:
+      labels:
+        run: minibytescloud
+    spec:
+      containers:
+      - image: gcr.io/auspicious-crow-331802/minibytescloud:latest
+        name: minibytescloud
+        ports:
+        - containerPort: 3000
