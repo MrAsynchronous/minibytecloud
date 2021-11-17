@@ -44,7 +44,7 @@ router.get('/', (req, res) => {
 		user_id: String
 	}
 */
-router.get('/login', async (req, res) => {
+router.post('/login', async (req, res) => {
 	var body = req.body;
 
 	// Validate request body
