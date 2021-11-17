@@ -12,8 +12,8 @@ if (process.env.NODE_ENV !== 'production') {
 const app = express();
 
 // Port definition
-var port = process.env.PORT || 3000;
-var version = "1.0.0";
+var port = process.env.PORT || 8080;
+var version = "1.0.1";
 
 // Create connection to MongoDb
 createMongoConnection().catch((err) => console.log(err));
