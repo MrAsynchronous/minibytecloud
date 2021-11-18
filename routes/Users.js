@@ -86,7 +86,7 @@ router.post('/login', async (req, res) => {
 		user_info: Object
 	}
 */
-router.get('/getuserinfo', async (req, res) => {
+router.post('/getuserinfo', async (req, res) => {
 	var body = req.body;
 
 	// Validate request
