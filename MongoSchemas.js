@@ -19,7 +19,7 @@ const userSchema = new mongoose.Schema({
 const byteSchema = new mongoose.Schema({
 	author_userid: String,
 	body: String,
-	date: {type: Date, default: Date.now},
+	date: Number,
 	comments: [commentSchema],
 	votes: {
 		count: { type: Number, default: 0 },

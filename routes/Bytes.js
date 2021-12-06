@@ -75,7 +75,8 @@ router.post('/post', async (req, res) => {
 	// Construct new byte
 	var byte = new Byte({
 		author_userid: user.user_id,
-		body: filter.clean(body.body)
+		body: filter.clean(body.body),
+		date: Date.now()
 	});
 
 	// Update user byte count
