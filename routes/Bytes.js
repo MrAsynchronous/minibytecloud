@@ -1,3 +1,7 @@
+/*
+	Brandon Wilcox
+*/
+
 const express = require('express');
 const Filter = require('bad-words');
 const mongoose = require('mongoose');

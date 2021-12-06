@@ -1,3 +1,7 @@
+/*
+	Brandon Wilcox
+*/
+
 //Load express module with `require` directive
 const mongoose = require('mongoose');
 const express = require('express');
