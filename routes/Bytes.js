@@ -228,16 +228,48 @@ router.post('/comment', async (req, res) => {
 */
 router.get('/fetch', async (req, res) => {
 	// Fetch first 100 bytes, sort by date
-	await Byte.find()
+	var queryResult = await Byte.find()
 		.limit(100)
 		.sort({date: -1})
 		.exec()
-		.then(docs => {
-			res.json({ bytes: docs })
-		})
-		.catch(err => {
-			res.json({ message: "Couldn't query bytes!", error: err })
-		})
+
+	var bytes = [];
+
+	for (let i = 0; i < queryResult.length; i++) {
+		var byte = queryResult[i];
+
+		// Query DB to find user
+		var userQueryResult = await User
+			.find({
+				user_id: byte.author_userid
+			});
+
+		// Validate user existance
+		if (userQueryResult.length == 0) {
+			continue;
+		}
+
+		// Localize user data
+		var userData = userQueryResult[0];
+
+		var combinedInfo = {
+			votes: byte.votes,
+			_id: byte._id,
+			author_userid: byte.author_userid,
+			body: byte.body,
+			date: byte.date,
+			author_userdata: {
+				name: userData.name,
+				bio: userData.bio,
+				total_bytes: userData.total_bytes,
+				total_upvotes: userData.total_upvotes
+			}
+		}
+
+		bytes.push(combinedInfo);
+	}
+
+	return res.json({ bytes: bytes });
 });
 
 module.exports = router
